@@ -25,23 +25,40 @@ export default class Compiler {
 	constructor() {
 		this.keywords = keywords
 		this.symbols = symbols
+
 		symbols.forEach((symbol) => {
 			this.symbolFirsts.push(symbol[0])
-			this.symbolRests.push(symbol.slice(1))
-			if (
-				symbol.length === 1 &&
-				!symbols
-					.map((symbol) => {
-						return symbol[0]
-					})
-					.includes(symbol)
-			) {
-				this.simpleSymbols.push(symbol)
-			} else {
-				this.multipleSymbols.push(symbol)
-			}
+			this.symbolRests = this.symbolRests.concat(
+				symbol.slice(1).split('')
+			)
 		})
-		console.log(this.simpleSymbols)
+
+		this.symbolFirsts.sort()
+		this.symbolRests = [...new Set(this.symbolRests)]
+
+		this.simpleSymbols = [...new Set(this.symbolFirsts.slice())]
+		for (let i = 1; i < this.symbolFirsts.length; i++) {
+			if (
+				this.symbolFirsts[i] === this.symbolFirsts[i - 1] ||
+				this.symbolRests.includes(this.symbolFirsts[i])
+			) {
+				const index = this.simpleSymbols.indexOf(this.symbolFirsts[i])
+				if (index !== -1) {
+					this.simpleSymbols.splice(index, 1)
+				}
+			}
+		}
+		this.multipleSymbols = this.symbols.filter((symbol, _) => {
+			return !this.simpleSymbols.includes(symbol)
+		})
+
+		console.log(
+			'Verifying symbols...\n',
+			this.simpleSymbols.length + this.multipleSymbols.length ===
+				this.symbols.length
+				? 'OK'
+				: 'ERROR'
+		)
 	}
 
 	getCharType(char: string): CharType {
